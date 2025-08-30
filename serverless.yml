@@ -1,0 +1,31 @@
+service: smart-next-step
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION}
+  stage: dev
+
+plugins:
+  - serverless-localstack
+
+custom:
+  localstack:
+    host: http://localhost:${env:LOCALSTACK_EDGE_PORT}
+    stages:
+      - dev
+    lambda:
+      mountCode: true
+
+functions:
+  eventIngestion:
+    handler: lambdas/event-ingestion/handler.main
+  dynamoWorker:
+    handler: lambdas/dynamo-worker/handler.main
+  vectorWorker:
+    handler: lambdas/vector-worker/handler.main
+  recommendation:
+    handler: lambdas/recommendation/handler.main
+
+build:
+  esbuild: false   # Disable native esbuild since we will use esbuild-wasm

@@ -1,0 +1,1012 @@
+{
+  "/Users/ark/Work/SkillsChallenge/smart-next-step/serverless.yml": {
+    "versionFramework": "4.18.2",
+    "servicePath": "/Users/ark/Work/SkillsChallenge/smart-next-step/serverless.yml",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "smart-next-step",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs18.x",
+        "region": "ap-southeast-2",
+        "stage": "dev",
+        "versionFunctions": true,
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "EventIngestionLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/smart-next-step-dev-eventIngestion"
+              }
+            },
+            "DynamoWorkerLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/smart-next-step-dev-dynamoWorker"
+              }
+            },
+            "VectorWorkerLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/smart-next-step-dev-vectorWorker"
+              }
+            },
+            "RecommendationLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/smart-next-step-dev-recommendation"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "smart-next-step",
+                          "dev",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/smart-next-step-dev*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/smart-next-step-dev*:*:*"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "smart-next-step",
+                      "dev",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            },
+            "EventIngestionLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "hot-reload",
+                  "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+                },
+                "Handler": "lambdas/event-ingestion/handler.main",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "smart-next-step-dev-eventIngestion",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "EventIngestionLogGroup"
+              ]
+            },
+            "DynamoWorkerLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "hot-reload",
+                  "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+                },
+                "Handler": "lambdas/dynamo-worker/handler.main",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "smart-next-step-dev-dynamoWorker",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "DynamoWorkerLogGroup"
+              ]
+            },
+            "VectorWorkerLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "hot-reload",
+                  "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+                },
+                "Handler": "lambdas/vector-worker/handler.main",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "smart-next-step-dev-vectorWorker",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "VectorWorkerLogGroup"
+              ]
+            },
+            "RecommendationLambdaFunction": {
+              "Type": "AWS::Lambda::Function",
+              "Properties": {
+                "Code": {
+                  "S3Bucket": "hot-reload",
+                  "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+                },
+                "Handler": "lambdas/recommendation/handler.main",
+                "Runtime": "nodejs18.x",
+                "FunctionName": "smart-next-step-dev-recommendation",
+                "MemorySize": 1024,
+                "Timeout": 6,
+                "Role": {
+                  "Fn::GetAtt": [
+                    "IamRoleLambdaExecution",
+                    "Arn"
+                  ]
+                }
+              },
+              "DependsOn": [
+                "RecommendationLogGroup"
+              ]
+            },
+            "EventIngestionLambdaVersionH6wBAEnwQ03J04Hv5P0GtfHzDfEY1Giq6jciXvng": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "EventIngestionLambdaFunction"
+                },
+                "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+              }
+            },
+            "DynamoWorkerLambdaVersionqMcT61VSz2RsgtKqjHG6JOzJlq8QAaCIt8WyDnlel8": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "DynamoWorkerLambdaFunction"
+                },
+                "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+              }
+            },
+            "VectorWorkerLambdaVersionJ65LSTAMWnP04CZUBPB4wGfZpmeH4sw0RCInbdH4c": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "VectorWorkerLambdaFunction"
+                },
+                "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+              }
+            },
+            "RecommendationLambdaVersionQOQI3sAxaKrBO0jIq4JVU3OnUGWozzz2CAzUI2JHhU": {
+              "Type": "AWS::Lambda::Version",
+              "DeletionPolicy": "Retain",
+              "Properties": {
+                "FunctionName": {
+                  "Ref": "RecommendationLambdaFunction"
+                },
+                "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+              }
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": "serverless-framework-deployments-ap-southeast-2-3dcadfec-053e",
+              "Export": {
+                "Name": "sls-smart-next-step-dev-ServerlessDeploymentBucketName"
+              }
+            },
+            "EventIngestionLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "EventIngestionLambdaVersionH6wBAEnwQ03J04Hv5P0GtfHzDfEY1Giq6jciXvng"
+              },
+              "Export": {
+                "Name": "sls-smart-next-step-dev-EventIngestionLambdaFunctionQualifiedArn"
+              }
+            },
+            "DynamoWorkerLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "DynamoWorkerLambdaVersionqMcT61VSz2RsgtKqjHG6JOzJlq8QAaCIt8WyDnlel8"
+              },
+              "Export": {
+                "Name": "sls-smart-next-step-dev-DynamoWorkerLambdaFunctionQualifiedArn"
+              }
+            },
+            "VectorWorkerLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "VectorWorkerLambdaVersionJ65LSTAMWnP04CZUBPB4wGfZpmeH4sw0RCInbdH4c"
+              },
+              "Export": {
+                "Name": "sls-smart-next-step-dev-VectorWorkerLambdaFunctionQualifiedArn"
+              }
+            },
+            "RecommendationLambdaFunctionQualifiedArn": {
+              "Description": "Current Lambda function version",
+              "Value": {
+                "Ref": "RecommendationLambdaVersionQOQI3sAxaKrBO0jIq4JVU3OnUGWozzz2CAzUI2JHhU"
+              },
+              "Export": {
+                "Name": "sls-smart-next-step-dev-RecommendationLambdaFunctionQualifiedArn"
+              }
+            }
+          }
+        },
+        "vpc": {},
+        "shouldNotDeploy": false
+      },
+      "plugins": [
+        "serverless-localstack"
+      ],
+      "custom": {
+        "localstack": {
+          "host": "http://localhost:4566",
+          "stages": [
+            "dev"
+          ],
+          "lambda": {
+            "mountCode": true
+          }
+        }
+      },
+      "functions": {
+        "eventIngestion": {
+          "handler": "lambdas/event-ingestion/handler.main",
+          "events": [],
+          "name": "smart-next-step-dev-eventIngestion",
+          "package": {
+            "artifact": "/Users/ark/Work/SkillsChallenge/smart-next-step/node_modules/serverless-localstack/src/index.js"
+          },
+          "memory": 1024,
+          "timeout": 6,
+          "runtime": "nodejs18.x",
+          "vpc": {},
+          "versionLogicalId": "EventIngestionLambdaVersionH6wBAEnwQ03J04Hv5P0GtfHzDfEY1Giq6jciXvng",
+          "artifactSize": 35857
+        },
+        "dynamoWorker": {
+          "handler": "lambdas/dynamo-worker/handler.main",
+          "events": [],
+          "name": "smart-next-step-dev-dynamoWorker",
+          "package": {
+            "artifact": "/Users/ark/Work/SkillsChallenge/smart-next-step/node_modules/serverless-localstack/src/index.js"
+          },
+          "memory": 1024,
+          "timeout": 6,
+          "runtime": "nodejs18.x",
+          "vpc": {},
+          "versionLogicalId": "DynamoWorkerLambdaVersionqMcT61VSz2RsgtKqjHG6JOzJlq8QAaCIt8WyDnlel8",
+          "artifactSize": 35857
+        },
+        "vectorWorker": {
+          "handler": "lambdas/vector-worker/handler.main",
+          "events": [],
+          "name": "smart-next-step-dev-vectorWorker",
+          "package": {
+            "artifact": "/Users/ark/Work/SkillsChallenge/smart-next-step/node_modules/serverless-localstack/src/index.js"
+          },
+          "memory": 1024,
+          "timeout": 6,
+          "runtime": "nodejs18.x",
+          "vpc": {},
+          "versionLogicalId": "VectorWorkerLambdaVersionJ65LSTAMWnP04CZUBPB4wGfZpmeH4sw0RCInbdH4c",
+          "artifactSize": 35857
+        },
+        "recommendation": {
+          "handler": "lambdas/recommendation/handler.main",
+          "events": [],
+          "name": "smart-next-step-dev-recommendation",
+          "package": {
+            "artifact": "/Users/ark/Work/SkillsChallenge/smart-next-step/node_modules/serverless-localstack/src/index.js"
+          },
+          "memory": 1024,
+          "timeout": 6,
+          "runtime": "nodejs18.x",
+          "vpc": {},
+          "versionLogicalId": "RecommendationLambdaVersionQOQI3sAxaKrBO0jIq4JVU3OnUGWozzz2CAzUI2JHhU",
+          "artifactSize": 35857
+        }
+      },
+      "build": {
+        "esbuild": false
+      }
+    },
+    "provider": {
+      "name": "aws",
+      "runtime": "nodejs18.x",
+      "region": "ap-southeast-2",
+      "stage": "dev",
+      "versionFunctions": true,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "EventIngestionLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/smart-next-step-dev-eventIngestion"
+            }
+          },
+          "DynamoWorkerLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/smart-next-step-dev-dynamoWorker"
+            }
+          },
+          "VectorWorkerLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/smart-next-step-dev-vectorWorker"
+            }
+          },
+          "RecommendationLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/smart-next-step-dev-recommendation"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "smart-next-step",
+                        "dev",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream",
+                          "logs:CreateLogGroup",
+                          "logs:TagResource"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/smart-next-step-dev*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/smart-next-step-dev*:*:*"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "smart-next-step",
+                    "dev",
+                    {
+                      "Ref": "AWS::Region"
+                    },
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "EventIngestionLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "hot-reload",
+                "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+              },
+              "Handler": "lambdas/event-ingestion/handler.main",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "smart-next-step-dev-eventIngestion",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "EventIngestionLogGroup"
+            ]
+          },
+          "DynamoWorkerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "hot-reload",
+                "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+              },
+              "Handler": "lambdas/dynamo-worker/handler.main",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "smart-next-step-dev-dynamoWorker",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "DynamoWorkerLogGroup"
+            ]
+          },
+          "VectorWorkerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "hot-reload",
+                "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+              },
+              "Handler": "lambdas/vector-worker/handler.main",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "smart-next-step-dev-vectorWorker",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "VectorWorkerLogGroup"
+            ]
+          },
+          "RecommendationLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "hot-reload",
+                "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+              },
+              "Handler": "lambdas/recommendation/handler.main",
+              "Runtime": "nodejs18.x",
+              "FunctionName": "smart-next-step-dev-recommendation",
+              "MemorySize": 1024,
+              "Timeout": 6,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              }
+            },
+            "DependsOn": [
+              "RecommendationLogGroup"
+            ]
+          },
+          "EventIngestionLambdaVersionH6wBAEnwQ03J04Hv5P0GtfHzDfEY1Giq6jciXvng": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "EventIngestionLambdaFunction"
+              },
+              "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+            }
+          },
+          "DynamoWorkerLambdaVersionqMcT61VSz2RsgtKqjHG6JOzJlq8QAaCIt8WyDnlel8": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "DynamoWorkerLambdaFunction"
+              },
+              "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+            }
+          },
+          "VectorWorkerLambdaVersionJ65LSTAMWnP04CZUBPB4wGfZpmeH4sw0RCInbdH4c": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "VectorWorkerLambdaFunction"
+              },
+              "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+            }
+          },
+          "RecommendationLambdaVersionQOQI3sAxaKrBO0jIq4JVU3OnUGWozzz2CAzUI2JHhU": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "RecommendationLambdaFunction"
+              },
+              "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "serverless-framework-deployments-ap-southeast-2-3dcadfec-053e",
+            "Export": {
+              "Name": "sls-smart-next-step-dev-ServerlessDeploymentBucketName"
+            }
+          },
+          "EventIngestionLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "EventIngestionLambdaVersionH6wBAEnwQ03J04Hv5P0GtfHzDfEY1Giq6jciXvng"
+            },
+            "Export": {
+              "Name": "sls-smart-next-step-dev-EventIngestionLambdaFunctionQualifiedArn"
+            }
+          },
+          "DynamoWorkerLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "DynamoWorkerLambdaVersionqMcT61VSz2RsgtKqjHG6JOzJlq8QAaCIt8WyDnlel8"
+            },
+            "Export": {
+              "Name": "sls-smart-next-step-dev-DynamoWorkerLambdaFunctionQualifiedArn"
+            }
+          },
+          "VectorWorkerLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "VectorWorkerLambdaVersionJ65LSTAMWnP04CZUBPB4wGfZpmeH4sw0RCInbdH4c"
+            },
+            "Export": {
+              "Name": "sls-smart-next-step-dev-VectorWorkerLambdaFunctionQualifiedArn"
+            }
+          },
+          "RecommendationLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "RecommendationLambdaVersionQOQI3sAxaKrBO0jIq4JVU3OnUGWozzz2CAzUI2JHhU"
+            },
+            "Export": {
+              "Name": "sls-smart-next-step-dev-RecommendationLambdaFunctionQualifiedArn"
+            }
+          }
+        }
+      },
+      "vpc": {},
+      "shouldNotDeploy": false
+    },
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "serviceRawFile": "service: smart-next-step\n\nprovider:\n  name: aws\n  runtime: nodejs18.x\n  region: ${env:AWS_REGION}\n  stage: dev\n\nplugins:\n  - serverless-localstack\n\ncustom:\n  localstack:\n    host: http://localhost:${env:LOCALSTACK_EDGE_PORT}\n    stages:\n      - dev\n    lambda:\n      mountCode: true\n\nfunctions:\n  eventIngestion:\n    handler: lambdas/event-ingestion/handler.main\n  dynamoWorker:\n    handler: lambdas/dynamo-worker/handler.main\n  vectorWorker:\n    handler: lambdas/vector-worker/handler.main\n  recommendation:\n    handler: lambdas/recommendation/handler.main\n\nbuild:\n  esbuild: false   # Disable native esbuild since we will use esbuild-wasm\n",
+    "command": [
+      "deploy"
+    ],
+    "options": {
+      "stage": "dev"
+    },
+    "orgId": "28308fea-de7e-4072-bceb-70d0c3871731",
+    "orgName": "anandrk",
+    "userId": "Nk3Kh9s4Wd9QbhXQHx",
+    "userName": "anandrk",
+    "serviceProviderAwsAccountId": "000000000000",
+    "serviceProviderAwsCfStackName": "smart-next-step-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:ap-southeast-2:000000000000:stack/smart-next-step-dev/e9243513",
+    "serviceProviderAwsCfStackCreated": "2025-08-30T06:35:33.567Z",
+    "serviceProviderAwsCfStackUpdated": "2025-08-30T07:22:26.240Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "serverless-framework-deployments-ap-southeast-2-3dcadfec-053e",
+        "ExportName": "sls-smart-next-step-dev-ServerlessDeploymentBucketName"
+      },
+      {
+        "OutputKey": "EventIngestionLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:000000000000:function:smart-next-step-dev-eventIngestion:1",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-smart-next-step-dev-EventIngestionLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "DynamoWorkerLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:000000000000:function:smart-next-step-dev-dynamoWorker:1",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-smart-next-step-dev-DynamoWorkerLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "VectorWorkerLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:000000000000:function:smart-next-step-dev-vectorWorker:1",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-smart-next-step-dev-VectorWorkerLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "RecommendationLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:ap-southeast-2:000000000000:function:smart-next-step-dev-recommendation:1",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-smart-next-step-dev-RecommendationLambdaFunctionQualifiedArn"
+      }
+    ],
+    "compiledCloudFormationTemplate": {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "The AWS CloudFormation template for this Serverless application",
+      "Resources": {
+        "EventIngestionLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/smart-next-step-dev-eventIngestion"
+          }
+        },
+        "DynamoWorkerLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/smart-next-step-dev-dynamoWorker"
+          }
+        },
+        "VectorWorkerLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/smart-next-step-dev-vectorWorker"
+          }
+        },
+        "RecommendationLogGroup": {
+          "Type": "AWS::Logs::LogGroup",
+          "Properties": {
+            "LogGroupName": "/aws/lambda/smart-next-step-dev-recommendation"
+          }
+        },
+        "IamRoleLambdaExecution": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+            "AssumeRolePolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": [
+                      "lambda.amazonaws.com"
+                    ]
+                  },
+                  "Action": [
+                    "sts:AssumeRole"
+                  ]
+                }
+              ]
+            },
+            "Policies": [
+              {
+                "PolicyName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "smart-next-step",
+                      "dev",
+                      "lambda"
+                    ]
+                  ]
+                },
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:CreateLogStream",
+                        "logs:CreateLogGroup",
+                        "logs:TagResource"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/smart-next-step-dev*:*"
+                        }
+                      ]
+                    },
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "logs:PutLogEvents"
+                      ],
+                      "Resource": [
+                        {
+                          "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/smart-next-step-dev*:*:*"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "Path": "/",
+            "RoleName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "smart-next-step",
+                  "dev",
+                  {
+                    "Ref": "AWS::Region"
+                  },
+                  "lambdaRole"
+                ]
+              ]
+            }
+          }
+        },
+        "EventIngestionLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "hot-reload",
+              "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+            },
+            "Handler": "lambdas/event-ingestion/handler.main",
+            "Runtime": "nodejs18.x",
+            "FunctionName": "smart-next-step-dev-eventIngestion",
+            "MemorySize": 1024,
+            "Timeout": 6,
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "EventIngestionLogGroup"
+          ]
+        },
+        "DynamoWorkerLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "hot-reload",
+              "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+            },
+            "Handler": "lambdas/dynamo-worker/handler.main",
+            "Runtime": "nodejs18.x",
+            "FunctionName": "smart-next-step-dev-dynamoWorker",
+            "MemorySize": 1024,
+            "Timeout": 6,
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "DynamoWorkerLogGroup"
+          ]
+        },
+        "VectorWorkerLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "hot-reload",
+              "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+            },
+            "Handler": "lambdas/vector-worker/handler.main",
+            "Runtime": "nodejs18.x",
+            "FunctionName": "smart-next-step-dev-vectorWorker",
+            "MemorySize": 1024,
+            "Timeout": 6,
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "VectorWorkerLogGroup"
+          ]
+        },
+        "RecommendationLambdaFunction": {
+          "Type": "AWS::Lambda::Function",
+          "Properties": {
+            "Code": {
+              "S3Bucket": "hot-reload",
+              "S3Key": "/Users/ark/Work/SkillsChallenge/smart-next-step"
+            },
+            "Handler": "lambdas/recommendation/handler.main",
+            "Runtime": "nodejs18.x",
+            "FunctionName": "smart-next-step-dev-recommendation",
+            "MemorySize": 1024,
+            "Timeout": 6,
+            "Role": {
+              "Fn::GetAtt": [
+                "IamRoleLambdaExecution",
+                "Arn"
+              ]
+            }
+          },
+          "DependsOn": [
+            "RecommendationLogGroup"
+          ]
+        },
+        "EventIngestionLambdaVersionH6wBAEnwQ03J04Hv5P0GtfHzDfEY1Giq6jciXvng": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "EventIngestionLambdaFunction"
+            },
+            "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+          }
+        },
+        "DynamoWorkerLambdaVersionqMcT61VSz2RsgtKqjHG6JOzJlq8QAaCIt8WyDnlel8": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "DynamoWorkerLambdaFunction"
+            },
+            "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+          }
+        },
+        "VectorWorkerLambdaVersionJ65LSTAMWnP04CZUBPB4wGfZpmeH4sw0RCInbdH4c": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "VectorWorkerLambdaFunction"
+            },
+            "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+          }
+        },
+        "RecommendationLambdaVersionQOQI3sAxaKrBO0jIq4JVU3OnUGWozzz2CAzUI2JHhU": {
+          "Type": "AWS::Lambda::Version",
+          "DeletionPolicy": "Retain",
+          "Properties": {
+            "FunctionName": {
+              "Ref": "RecommendationLambdaFunction"
+            },
+            "CodeSha256": "ULSruH0b009w49xQn/aJHsTNaSkNA9iBTL5kBhZ7rSc="
+          }
+        }
+      },
+      "Outputs": {
+        "ServerlessDeploymentBucketName": {
+          "Value": "serverless-framework-deployments-ap-southeast-2-3dcadfec-053e",
+          "Export": {
+            "Name": "sls-smart-next-step-dev-ServerlessDeploymentBucketName"
+          }
+        },
+        "EventIngestionLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "EventIngestionLambdaVersionH6wBAEnwQ03J04Hv5P0GtfHzDfEY1Giq6jciXvng"
+          },
+          "Export": {
+            "Name": "sls-smart-next-step-dev-EventIngestionLambdaFunctionQualifiedArn"
+          }
+        },
+        "DynamoWorkerLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "DynamoWorkerLambdaVersionqMcT61VSz2RsgtKqjHG6JOzJlq8QAaCIt8WyDnlel8"
+          },
+          "Export": {
+            "Name": "sls-smart-next-step-dev-DynamoWorkerLambdaFunctionQualifiedArn"
+          }
+        },
+        "VectorWorkerLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "VectorWorkerLambdaVersionJ65LSTAMWnP04CZUBPB4wGfZpmeH4sw0RCInbdH4c"
+          },
+          "Export": {
+            "Name": "sls-smart-next-step-dev-VectorWorkerLambdaFunctionQualifiedArn"
+          }
+        },
+        "RecommendationLambdaFunctionQualifiedArn": {
+          "Description": "Current Lambda function version",
+          "Value": {
+            "Ref": "RecommendationLambdaVersionQOQI3sAxaKrBO0jIq4JVU3OnUGWozzz2CAzUI2JHhU"
+          },
+          "Export": {
+            "Name": "sls-smart-next-step-dev-RecommendationLambdaFunctionQualifiedArn"
+          }
+        }
+      }
+    }
+  }
+}

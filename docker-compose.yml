@@ -1,0 +1,29 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack-main
+    ports:
+      - "${LOCALSTACK_EDGE_PORT}:4566"
+    environment:
+      - SERVICES=${LOCALSTACK_SERVICES}
+      - PERSISTENCE=${LOCALSTACK_PERSISTENCE}
+      - LAMBDA_DOCKER_NETWORK=${LAMBDA_DOCKER_NETWORK}
+    networks:
+      - ${LAMBDA_DOCKER_NETWORK}
+    volumes:
+      - "${LOCALSTACK_PERSISTENCE}:${LOCALSTACK_PERSISTENCE}"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant-main
+    ports:
+      - "6333:6333"
+    networks:
+      - ${LAMBDA_DOCKER_NETWORK}
+    volumes:
+      - "./.qdrant:/qdrant/storage"
+
+networks:
+  localstack-net:
+    driver: bridge
