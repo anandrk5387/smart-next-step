@@ -2,3 +2,4 @@
 .qdrant/
 .serverless/
 node_modules/
+dist/

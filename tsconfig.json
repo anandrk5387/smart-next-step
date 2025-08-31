@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
-    "strict": true,
+    "module": "CommonJS",
+    "rootDir": "lambdas",
+    "outDir": "dist/lambdas",
     "esModuleInterop": true,
-    "outDir": "dist",
-    "rootDir": "./"
+    "strict": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
-  "include": ["lambdas/**/*.ts"]
+  "include": ["lambdas/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
 }

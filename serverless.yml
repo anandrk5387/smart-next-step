@@ -5,6 +5,8 @@ provider:
   runtime: nodejs18.x
   region: ${env:AWS_REGION}
   stage: dev
+  deploymentBucket:
+    name: serverlessdeploymentbucket
 
 plugins:
   - serverless-localstack
@@ -19,13 +21,27 @@ custom:
 
 functions:
   eventIngestion:
-    handler: lambdas/event-ingestion/handler.main
-  dynamoWorker:
-    handler: lambdas/dynamo-worker/handler.main
+    handler: dist/lambdas/event-ingestion/handler.main
+    environment:
+      LOCALSTACK_EDGE_PORT: ${env:LOCALSTACK_EDGE_PORT}
+      EVENT_TOPIC_ARN: ${env:EVENT_TOPIC_ARN}
+    events:
+      - http:
+          path: events
+          method: post
+
+  recommendation:
+    handler: dist/lambdas/recommendation/handler.main
+    environment:
+      LOCALSTACK_EDGE_PORT: ${env:LOCALSTACK_EDGE_PORT}
+      RECOMMEND_TOPIC_ARN: ${env:RECOMMEND_TOPIC_ARN}
+    events:
+      - http:
+          path: recommendations
+          method: post
+
   vectorWorker:
     handler: lambdas/vector-worker/handler.main
-  recommendation:
-    handler: lambdas/recommendation/handler.main
 
 build:
-  esbuild: false   # Disable native esbuild since we will use esbuild-wasm
+  esbuild: false 
