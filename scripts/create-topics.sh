@@ -5,7 +5,7 @@ set -euo pipefail
 export $(grep -v '^#' .env.local | xargs) || true
 
 # Dynamic topic list
-TOPIC_NAMES=("eventTopic" "recommendationTopic") # Add more as needed
+TOPIC_NAMES=("eventTopic" "recommendationTopic" "vectorTopic") 
 
 echo "🔹 [create-topics] Creating SNS topics..."
 # Remove old file
