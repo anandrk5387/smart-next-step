@@ -1,6 +1,14 @@
 {
   "name": "smart-next-step",
   "version": "1.0.0",
+  "description": "Event-driven AI recommendation engine",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "deploy": "bash scripts/master-setup.sh",
+    "clean": "rm -rf dist"
+  },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
     "@types/node": "^24.3.0",
@@ -11,6 +19,12 @@
     "esbuild-wasm": "^0.18.18"
   },
   "dependencies": {
-    "aws-sdk": "^2.1692.0"
+    "@aws-sdk/client-sns": "^3.483.0",
+    "@aws-sdk/client-sqs": "^3.483.0",
+    "@aws-sdk/client-dynamodb": "^3.483.0",
+    "@aws-sdk/client-s3": "^3.483.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.483.0",
+    "@qdrant/qdrant-js": "^1.15.0",
+    "qdrant-client": "^0.0.1"
   }
 }
