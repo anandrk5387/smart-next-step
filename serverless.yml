@@ -3,10 +3,13 @@ service: smart-next-step
 provider:
   name: aws
   runtime: nodejs18.x
-  region: ${env:AWS_REGION}
   stage: dev
+  region: ${env:AWS_REGION}
   deploymentBucket:
     name: serverlessdeploymentbucket
+  environment:
+    LOCALSTACK_EDGE_PORT: ${env:LOCALSTACK_EDGE_PORT}
+    TOPICS_JSON: ${env:TOPICS_JSON}
 
 plugins:
   - serverless-localstack
@@ -23,8 +26,7 @@ functions:
   eventIngestion:
     handler: dist/lambdas/event-ingestion/handler.main
     environment:
-      LOCALSTACK_EDGE_PORT: ${env:LOCALSTACK_EDGE_PORT}
-      EVENT_TOPIC_ARN: ${env:EVENT_TOPIC_ARN}
+      EVENT_TOPIC_ARN: ${env:eventTopic_ARN}
     events:
       - http:
           path: events
@@ -33,15 +35,29 @@ functions:
   recommendation:
     handler: dist/lambdas/recommendation/handler.main
     environment:
-      LOCALSTACK_EDGE_PORT: ${env:LOCALSTACK_EDGE_PORT}
-      RECOMMEND_TOPIC_ARN: ${env:RECOMMEND_TOPIC_ARN}
+      RECOMMEND_TOPIC_ARN: ${env:recommendationTopic_ARN}
     events:
       - http:
           path: recommendations
-          method: post
+          method: get
 
   vectorWorker:
-    handler: lambdas/vector-worker/handler.main
+    handler: dist/lambdas/vector-worker/handler.main
 
-build:
-  esbuild: false 
+resources:
+  Resources:
+    EventTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: EventTable
+        AttributeDefinitions:
+          - AttributeName: companyId
+            AttributeType: S
+          - AttributeName: eventId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: companyId
+            KeyType: HASH
+          - AttributeName: eventId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
