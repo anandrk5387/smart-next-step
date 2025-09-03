@@ -1,12 +1,31 @@
+import { SNSEvent } from "aws-lambda";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 
-const db = new DynamoDBClient({ region: process.env.AWS_REGION });
-const TABLE_NAME = process.env.EVENTS_TABLE || "EventsTable";
+type EventMessage = {
+  companyId: string;
+  userId: string;
+  eventType: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
+  eventId: string;
+  timestamp: string;
+};
 
-export const main = async (event: any) => {
-  for (const record of event.Records) {
+const REGION = process.env.AWS_REGION || "ap-southeast-2";
+const TABLE_NAME = process.env.EVENTS_TABLE || "EventTable";
+
+const db = new DynamoDBClient({
+  region: REGION,
+  // If you ever need an explicit LocalStack endpoint inside Lambda:
+  // endpoint: process.env.AWS_ENDPOINT_URL || `http://${process.env.LOCALSTACK_HOSTNAME || "localhost"}:${process.env.LOCALSTACK_EDGE_PORT || "4566"}`
+});
+
+export const main = async (event: SNSEvent) => {
+  const tasks = event.Records.map(async (record) => {
     try {
-      const payload = JSON.parse(record.Sns.Message);
+      const payload = JSON.parse(record.Sns.Message) as EventMessage;
+      if (!payload.companyId || !payload.eventId) return;
+
       await db.send(
         new PutItemCommand({
           TableName: TABLE_NAME,
@@ -16,13 +35,17 @@ export const main = async (event: any) => {
             userId: { S: payload.userId },
             eventType: { S: payload.eventType },
             timestamp: { S: payload.timestamp },
-            metadata: { S: JSON.stringify(payload.metadata) },
-            description: { S: payload.description },
+            description: { S: payload.description ?? "" },
+            metadata: { S: JSON.stringify(payload.metadata ?? {}) },
           },
+          // ReturnConsumedCapacity: "TOTAL", // uncomment if you want to see capacity
         })
       );
     } catch (err) {
-      console.error("DynamoDB Worker Error:", err);
+      console.error("DynamoWorker: failed to handle record", err);
     }
-  }
+  });
+
+  await Promise.allSettled(tasks);
+  return { statusCode: 200 };
 };

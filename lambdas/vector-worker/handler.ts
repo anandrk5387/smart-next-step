@@ -1,34 +1,61 @@
+import { SNSEvent } from "aws-lambda";
 import { QdrantClient } from "@qdrant/qdrant-js";
 
-export const main = async (event: any) => {
-  const client = new QdrantClient({
-    url: process.env.QDRANT_URL!,
-  });
+// Minimal shape Qdrant accepts for upsert()
+type QdrantPoint = {
+  id: string | number;
+  vector: number[];
+  payload?: Record<string, unknown>;
+};
 
-  // Extract messages from SNS event
-  const records = event.Records || [];
-  for (const record of records) {
-    const payload = JSON.parse(record.Sns.Message);
+type EventMessage = {
+  companyId: string;
+  userId: string;
+  eventType: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
+  eventId: string;
+  timestamp: string;
+};
 
-    const vector: number[] = generateVector(payload.description); // Implement embedding
+export const main = async (event: SNSEvent) => {
+  const qdrantUrl = process.env.QDRANT_URL || "http://localhost:6333";
+  const client = new QdrantClient({ url: qdrantUrl });
 
-    await client.upsert("events_collection", {
-      wait: true,
-      points: [
-        {
+  const points: QdrantPoint[] = event.Records
+    .map((record) => {
+      try {
+        const payload = JSON.parse(record.Sns.Message) as EventMessage;
+        if (!payload?.eventId) return null;
+
+        const vector = generateVector(payload.description ?? "");
+        return {
           id: payload.eventId,
           vector,
           payload,
-        },
-      ],
-    });
+        } as QdrantPoint;
+      } catch (err) {
+        console.error("VectorWorker: parse error", err);
+        return null;
+      }
+    })
+    .filter((p): p is QdrantPoint => p !== null); // type guard removes nulls
 
+  if (points.length === 0) return { statusCode: 200 };
+
+  try {
+    await client.upsert("events_collection", {
+      wait: true,
+      points,
+    });
+  } catch (err) {
+    console.error("VectorWorker: Qdrant upsert failed", err);
   }
 
   return { statusCode: 200 };
 };
 
-// Dummy placeholder
 function generateVector(text: string): number[] {
-  return Array(384).fill(Math.random()); // Replace with actual embedding logic
+  // TODO: replace with real embeddings
+  return Array(384).fill(0).map(() => Math.random());
 }
