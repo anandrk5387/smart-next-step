@@ -14,6 +14,7 @@ provider:
     RECOMMEND_TOPIC_NAME: recommendationTopic
     QDRANT_URL: ${env:QDRANT_URL}
   lambdaHashingVersion: 20201221
+  versionFunctions: false
 
 plugins:
   - serverless-localstack
@@ -25,6 +26,8 @@ custom:
       - dev
     lambda:
       mountCode: true
+      reuseContainers: true
+      containerCleanup: true
     skipECR: true
 
 functions:
