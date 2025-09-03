@@ -9,7 +9,11 @@ provider:
     name: serverlessdeploymentbucket
   environment:
     LOCALSTACK_EDGE_PORT: ${env:LOCALSTACK_EDGE_PORT}
-    TOPICS_JSON: ${env:TOPICS_JSON}
+    EVENTS_TABLE: EventTable
+    EVENT_TOPIC_NAME: eventTopic
+    RECOMMEND_TOPIC_NAME: recommendationTopic
+    QDRANT_URL: ${env:QDRANT_URL}
+  lambdaHashingVersion: 20201221
 
 plugins:
   - serverless-localstack
@@ -21,12 +25,13 @@ custom:
       - dev
     lambda:
       mountCode: true
+    skipECR: true
 
 functions:
   eventIngestion:
     handler: dist/lambdas/event-ingestion/handler.main
     environment:
-      EVENT_TOPIC_ARN: ${env:eventTopic_ARN}
+      EVENT_TOPIC_NAME: eventTopic
     events:
       - http:
           path: events
@@ -35,7 +40,7 @@ functions:
   recommendation:
     handler: dist/lambdas/recommendation/handler.main
     environment:
-      RECOMMEND_TOPIC_ARN: ${env:recommendationTopic_ARN}
+      RECOMMEND_TOPIC_NAME: recommendationTopic
     events:
       - http:
           path: recommendations
@@ -43,6 +48,19 @@ functions:
 
   vectorWorker:
     handler: dist/lambdas/vector-worker/handler.main
+    environment:
+      QDRANT_URL: ${env:QDRANT_URL}
+    events:
+      - sns:
+          topicName: eventTopic
+
+  dynamoWorker:
+    handler: dist/lambdas/dynamodb-worker/handler.main
+    environment:
+      EVENTS_TABLE: EventTable
+    events:
+      - sns:
+          topicName: eventTopic
 
 resources:
   Resources:
@@ -61,3 +79,13 @@ resources:
           - AttributeName: eventId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
+
+    EventTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: eventTopic
+
+    RecommendationTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: recommendationTopic
