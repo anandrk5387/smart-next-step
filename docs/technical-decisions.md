@@ -1,9 +1,3 @@
-
----
-
-### **`docs/decisions.md`**
-
-```markdown
 # Technical Decisions
 
 ## 1. Serverless + LocalStack
