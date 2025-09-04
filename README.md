@@ -43,21 +43,21 @@ git clone <repo-url>
 cd smart-next-step
 scripts/setup.sh
 ```
-# Edit .env.local to add OPENAI_API_KEY if available
+**Edit .env.local to add OPENAI_API_KEY if available**  
 
 ### 3. Verify Deployment
 
-# Check Lambda containers are running:
+**Check Lambda containers are running:**  
 ```bash
 docker ps | grep localstack
 ```
 
-# List SNS subscriptions::
+**List SNS subscriptions:**  
 ```bash
 awslocal sns list-subscriptions
 ```
 
-# Verify DynamoDB table:::
+**Verify DynamoDB table:**  
 ```bash
 awslocal dynamodb list-tables
 ```
