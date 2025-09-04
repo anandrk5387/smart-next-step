@@ -1,7 +1,7 @@
 import { SNSEvent } from "aws-lambda";
 import { QdrantClient } from "@qdrant/qdrant-js";
+import OpenAI from "openai";
 
-// Minimal shape Qdrant accepts for upsert()
 type QdrantPoint = {
   id: string | number;
   vector: number[];
@@ -18,36 +18,33 @@ type EventMessage = {
   timestamp: string;
 };
 
+const qdrantClient = new QdrantClient({
+  url: process.env.QDRANT_URL || "http://localhost:6333",
+});
+
+// Only initialize OpenAI if API key exists
+const openaiApiKey = process.env.OPENAI_API_KEY?.trim();
+const openai = openaiApiKey ? new OpenAI({ apiKey: openaiApiKey }) : null;
+
 export const main = async (event: SNSEvent) => {
-  const qdrantUrl = process.env.QDRANT_URL || "http://localhost:6333";
-  const client = new QdrantClient({ url: qdrantUrl });
+  const points: QdrantPoint[] = [];
 
-  const points: QdrantPoint[] = event.Records
-    .map((record) => {
-      try {
-        const payload = JSON.parse(record.Sns.Message) as EventMessage;
-        if (!payload?.eventId) return null;
+  for (const record of event.Records) {
+    try {
+      const payload = JSON.parse(record.Sns.Message) as EventMessage;
+      if (!payload?.eventId) continue;
 
-        const vector = generateVector(payload.description ?? "");
-        return {
-          id: payload.eventId,
-          vector,
-          payload,
-        } as QdrantPoint;
-      } catch (err) {
-        console.error("VectorWorker: parse error", err);
-        return null;
-      }
-    })
-    .filter((p): p is QdrantPoint => p !== null); // type guard removes nulls
+      const vector = await generateVector(payload.description ?? "");
+      points.push({ id: payload.eventId, vector, payload });
+    } catch (err) {
+      console.error("VectorWorker: parse error", err);
+    }
+  }
 
   if (points.length === 0) return { statusCode: 200 };
 
   try {
-    await client.upsert("events_collection", {
-      wait: true,
-      points,
-    });
+    await qdrantClient.upsert("events_collection", { wait: true, points });
   } catch (err) {
     console.error("VectorWorker: Qdrant upsert failed", err);
   }
@@ -55,7 +52,19 @@ export const main = async (event: SNSEvent) => {
   return { statusCode: 200 };
 };
 
-function generateVector(text: string): number[] {
-  // TODO: replace with real embeddings
+async function generateVector(text: string): Promise<number[]> {
+  if (openai) {
+    try {
+      const response = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: text,
+      });
+      return response.data[0].embedding;
+    } catch (err) {
+      console.error("OpenAI embedding failed, using fallback vector", err);
+    }
+  }
+
+  // Fallback for testing if no API key or OpenAI fails
   return Array(384).fill(0).map(() => Math.random());
 }
