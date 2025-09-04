@@ -14,8 +14,7 @@ rm -f "$TMP_FILE"
 
 for TOPIC in "${TOPIC_NAMES[@]}"; do
   ARN=$(awslocal sns create-topic --name "$TOPIC" | jq -r '.TopicArn')
-  echo "$TOPIC=$ARN" >> "$TMP_FILE"
-  # Export for shell session
+  echo "${TOPIC}_ARN=$ARN" >> "$TMP_FILE"
   export "${TOPIC}_ARN=$ARN"
   echo "  ✅ $TOPIC ARN: $ARN"
 done
