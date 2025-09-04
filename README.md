@@ -67,3 +67,27 @@ awslocal dynamodb list-tables
 ```bash
 scripts/test.sh
 ```
+
+## ⚠️ Assessment Gap Report
+
+Due to time constraints, the following areas are either partially implemented or left as known limitations:  
+
+- **OpenAI Integration** → Vector embeddings currently use a fallback (random vectors). Direct integration with OpenAI was planned but not finalized.  
+- **Error Handling & Retries** → External service calls (Qdrant, DynamoDB, SNS) have minimal retry or backoff logic; no dead-letter queues configured.  
+- **Recommendations API** → Endpoint is stubbed/mocked; does not yet return real recommendation results.  
+- **Testing Coverage** → Integration tests verify core flows but lack edge cases, load testing, and full negative-path validation.  
+- **Documentation** → Architecture and event flow covered, but deeper deployment notes, troubleshooting, and design trade-offs are limited.  
+- **Observability** → Logging is basic; no structured monitoring, metrics, or centralized tracing.  
+- **Secrets Management** → API keys (e.g., OpenAI) are stored in environment variables only; no secure rotation/management strategy applied.  
+
+## 🚀 Actual Improvements Needed
+
+Based on the identified gaps, the following improvements are recommended:  
+
+- **Enable OpenAI Embeddings** → Replace random vector generation with OpenAI’s embedding API for realistic recommendation workflows.  
+- **Enhance Reliability** → Add retry/backoff strategies, DLQs for SNS-triggered Lambdas, and transaction safeguards in DynamoDB/Qdrant operations.  
+- **Implement Real Recommendations** → Build out the `/recommendations` endpoint to query Qdrant for nearest-neighbor search and return ranked results.  
+- **Expand Testing** → Add negative-path, stress/load tests, and automated regression tests to improve coverage.  
+- **Strengthen Documentation** → Include deployment steps (CloudFormation/Terraform), troubleshooting tips, and detailed design decisions.  
+- **Improve Observability** → Introduce structured logging, CloudWatch metrics, and distributed tracing for better debugging.  
+- **Secure Secrets Management** → Move sensitive keys to AWS Secrets Manager or Parameter Store with rotation policies.  
